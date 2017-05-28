@@ -9,6 +9,7 @@ const defaultShouldRenderSuggestions = value => value.trim().length > 0;
 const defaultRenderSuggestionsContainer = ({ containerProps, children }) => (
   <div {...containerProps}>{children}</div>
 );
+const isIE11 = typeof window !== 'undefined' && !!window.MSInputMethodContext && !!document.documentMode;
 
 export default class Autosuggest extends Component {
   static propTypes = {
@@ -483,7 +484,7 @@ export default class Autosuggest extends Component {
           this.onSuggestionsClearRequested();
         }
       },
-      onChange: event => {
+      [isIE11 ? 'onInput' : 'onChange']: event => {
         const { value } = event.target;
         const shouldRender = shouldRenderSuggestions(value);
 
