@@ -4,9 +4,7 @@ import match from 'autosuggest-highlight/match';
 import parse from 'autosuggest-highlight/parse';
 import Autosuggest from '../../src/Autosuggest';
 import languages from './languages';
-import {
-  escapeRegexCharacters
-} from '../../demo/src/components/utils/utils.js';
+import { escapeRegexCharacters } from '../../demo/src/components/utils/utils.js';
 import { addEvent } from '../helpers';
 
 const getMatchingLanguages = value => {
@@ -64,6 +62,10 @@ export const onSuggestionSelected = sinon.spy(() => {
   addEvent('onSuggestionSelected');
 });
 
+export const onSuggestionHighlighted = sinon.spy(() => {
+  addEvent('onSuggestionHighlighted');
+});
+
 export default class AutosuggestApp extends Component {
   constructor() {
     super();
@@ -100,6 +102,7 @@ export default class AutosuggestApp extends Component {
         onSuggestionsFetchRequested={onSuggestionsFetchRequested}
         onSuggestionsClearRequested={onSuggestionsClearRequested}
         onSuggestionSelected={onSuggestionSelected}
+        onSuggestionHighlighted={onSuggestionHighlighted}
         getSuggestionValue={getSuggestionValue}
         renderSuggestion={renderSuggestion}
         inputProps={inputProps}

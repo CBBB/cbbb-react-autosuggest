@@ -36,6 +36,7 @@ export default class Autosuggest extends Component {
       }
     },
     onSuggestionSelected: PropTypes.func,
+    onSuggestionHighlighted: PropTypes.func,
     renderInputComponent: PropTypes.func,
     renderSuggestionsContainer: PropTypes.func,
     getSuggestionValue: PropTypes.func.isRequired,
@@ -137,6 +138,25 @@ export default class Autosuggest extends Component {
       } else {
         this.resetHighlightedSuggestion();
       }
+    }
+  }
+
+  componentDidUpdate(prevProps, prevState) {
+    const { onSuggestionHighlighted } = this.props;
+
+    if (!onSuggestionHighlighted) {
+      return;
+    }
+
+    const { highlightedSectionIndex, highlightedSuggestionIndex } = this.state;
+
+    if (
+      highlightedSectionIndex !== prevState.highlightedSectionIndex ||
+      highlightedSuggestionIndex !== prevState.highlightedSuggestionIndex
+    ) {
+      const suggestion = this.getHighlightedSuggestion();
+
+      onSuggestionHighlighted({ suggestion });
     }
   }
 
@@ -326,7 +346,10 @@ export default class Autosuggest extends Component {
     onSuggestionSelected && onSuggestionSelected(event, data);
 
     if (alwaysRenderSuggestions) {
-      onSuggestionsFetchRequested({ value: data.suggestionValue });
+      onSuggestionsFetchRequested({
+        value: data.suggestionValue,
+        reason: 'suggestion-selected'
+      });
     } else {
       this.onSuggestionsClearRequested();
     }
@@ -467,7 +490,7 @@ export default class Autosuggest extends Component {
           onFocus && onFocus(event);
 
           if (shouldRender) {
-            onSuggestionsFetchRequested({ value });
+            onSuggestionsFetchRequested({ value, reason: 'input-focused' });
           }
         }
       },
@@ -498,7 +521,7 @@ export default class Autosuggest extends Component {
         });
 
         if (shouldRender) {
-          onSuggestionsFetchRequested({ value });
+          onSuggestionsFetchRequested({ value, reason: 'input-changed' });
         } else {
           this.onSuggestionsClearRequested();
         }
@@ -509,7 +532,10 @@ export default class Autosuggest extends Component {
           case 'ArrowUp':
             if (isCollapsed) {
               if (shouldRenderSuggestions(value)) {
-                onSuggestionsFetchRequested({ value });
+                onSuggestionsFetchRequested({
+                  value,
+                  reason: 'suggestions-revealed'
+                });
                 this.revealSuggestions();
               }
             } else if (suggestions.length > 0) {
@@ -557,6 +583,11 @@ export default class Autosuggest extends Component {
             break;
 
           case 'Enter': {
+            // See #388
+            if (event.keyCode === 229) {
+              break;
+            }
+
             const highlightedSuggestion = this.getHighlightedSuggestion();
 
             if (isOpen && !alwaysRenderSuggestions) {
@@ -605,7 +636,10 @@ export default class Autosuggest extends Component {
                 this.maybeCallOnChange(event, newValue, 'escape');
 
                 if (shouldRenderSuggestions(newValue)) {
-                  onSuggestionsFetchRequested({ value: newValue });
+                  onSuggestionsFetchRequested({
+                    value: newValue,
+                    reason: 'escape-pressed'
+                  });
                 } else {
                   this.onSuggestionsClearRequested();
                 }
